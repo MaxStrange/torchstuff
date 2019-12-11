@@ -50,6 +50,24 @@ def fetch_the_data():
     subprocess.run(["unzip", "recipes_raw.zip", "-d", RECIPES_DIRPATH])
     subprocess.run(["rm", "recipes_raw.zip"])
 
+def _wrap_text(text: str, words_per_line=20) -> str:
+    """
+    Takes a block of text which may or may not have newlines in it and formats it
+    so that it contains occasional, sensical newlines.
+    """
+    text = text.replace('\r', '')
+    text = text.replace('\n', '')
+    wordlist = text.split()
+
+    result = []
+    for i, word in enumerate(wordlist):
+        if i % words_per_line == 0 and i != 0:
+            result.append('\n')
+
+        result.append(word)
+
+    return " ".join(result)
+
 def _reconstitute_recipe(txt, recipe: dict):
     """
     Recipes should each have the following items:
@@ -62,7 +80,9 @@ def _reconstitute_recipe(txt, recipe: dict):
     We currently ignore the picture link in reconstituting the text.
     """
     title = unicode_to_ascii(recipe['title'].strip())
-
+    separator = "=================================================="
+    ingredients = "\n".join([unicode_to_ascii(ingredient).strip() for ingredient in recipe['ingredients']])
+    instructions = _wrap_text(unicode_to_ascii(recipe['instructions']).strip())
     reconsd = f"{title}\n{separator}\n\n{ingredients}\n{instructions}\n"
     txt.write(reconsd)
 
